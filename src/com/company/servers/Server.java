@@ -1,6 +1,7 @@
 package com.company.servers;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -10,16 +11,16 @@ public class Server implements FallibleWithInners {
     private static final Random RANDOM = new Random();
 
     private final int id;
-    private final Node[] nodes;
+    private final List<Node> nodes;
 
     private boolean failed;
 
     Server(int id, int maxNumberOfItems) {
         this.id = id;
         int numberOfNodes = RANDOM.nextInt(maxNumberOfItems - 1) + 1;
-        nodes = new Node[numberOfNodes];
-        for (int i = 0; i < nodes.length; i++) {
-            nodes[i] = new Node(i);
+        nodes = new ArrayList<>(numberOfNodes);
+        for (int i = 0; i < numberOfNodes; i++) {
+            nodes.add(new Node(i));
         }
     }
 
@@ -27,16 +28,16 @@ public class Server implements FallibleWithInners {
     public String toString() {
         return "Server{" +
                 "id=" + id +
-                ", nodes=" + Arrays.stream(nodes)
-                                   .map(Objects::toString)
-                                   .map(string -> string + "\n")
-                                   .collect(Collectors.toList()) +
+                ", nodes=" + nodes.stream()
+                                  .map(Objects::toString)
+                                  .map(string -> string + "\n")
+                                  .collect(Collectors.toList()) +
                 '}';
     }
 
     @Override
     public int getSize() {
-        return nodes.length;
+        return nodes.size();
     }
 
     @Override
@@ -51,14 +52,14 @@ public class Server implements FallibleWithInners {
 
     @Override
     public FallibleWithInners getInnerFallible(int number) {
-        return nodes[number];
+        return nodes.get(number);
     }
 
     void failRandomNode() {
         failed = true;
-        int failedNode = RANDOM.nextInt(nodes.length);
-        for (int i = failedNode; i < nodes.length; i++) {
-            nodes[i].failNode();
+        int failedNode = RANDOM.nextInt(nodes.size());
+        for (int i = failedNode; i < nodes.size(); i++) {
+            nodes.get(i).failNode();
         }
     }
 
