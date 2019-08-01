@@ -10,7 +10,7 @@ public class FailSearchEngine {
 
         while (end - start > 1) {
             int current = (start + end) / 2;
-            if (currentFallibleWithInners.getInnerFallible(current).isFailed()) {
+            if (!currentFallibleWithInners.getInnerFallible(current).isTransactionPassed()) {
                 end = current;
             } else {
                 start = current;
@@ -21,7 +21,7 @@ public class FailSearchEngine {
 
     private Result getResult(FallibleWithInners currentFallibleWithInners, int start, int end) {
         FallibleWithInners innerFailed = currentFallibleWithInners.getInnerFallible(start);
-        if (!innerFailed.isFailed()) {
+        if (innerFailed.isTransactionPassed()) {
             innerFailed = currentFallibleWithInners.getInnerFallible(end);
         }
         return getResult(innerFailed);

@@ -6,13 +6,15 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.company.exceptions.FailedTransactionException;
+
 public class Cluster implements FallibleWithInners {
 
     private final static Random RANDOM = new Random();
 
     private final List<Server> servers = new ArrayList<>();
 
-    private boolean failed;
+    private boolean transactionPassed;
 
     public Cluster(int maxNumberOfItems) {
         fillServers(maxNumberOfItems);
@@ -29,8 +31,8 @@ public class Cluster implements FallibleWithInners {
     }
 
     @Override
-    public boolean isFailed() {
-        return failed;
+    public boolean isTransactionPassed() {
+        return transactionPassed;
     }
 
     @Override
@@ -39,11 +41,13 @@ public class Cluster implements FallibleWithInners {
     }
 
     public void sendData() {
-        failed = true;
-        int failedServer = RANDOM.nextInt(servers.size());
-        servers.get(failedServer).failRandomNode();
-        for (int i = failedServer + 1; i < servers.size(); i++) {
-            servers.get(i).failAll();
+        try {
+            for (Server server : servers) {
+                server.doTransaction();
+            }
+            transactionPassed = true;
+        } catch (FailedTransactionException e) {
+            throw new FailedTransactionException("Cluster has failed transaction", e);
         }
     }
 

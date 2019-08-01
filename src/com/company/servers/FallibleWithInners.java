@@ -7,7 +7,7 @@ public interface FallibleWithInners {
 
     int getId();
 
-    boolean isFailed();
+    boolean isTransactionPassed();
 
     FallibleWithInners getInnerFallible(int number);
 
