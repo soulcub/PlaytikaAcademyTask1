@@ -1,6 +1,7 @@
 package com.company.servers;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -8,18 +9,18 @@ import java.util.stream.Collectors;
 public class Cluster implements FallibleWithInners {
 
     private final static Random RANDOM = new Random();
-    private final Server[] servers;
+
+    private final List<Server> servers = new ArrayList<>();
 
     private boolean failed;
 
     public Cluster(int maxNumberOfItems) {
-        servers = createServers(maxNumberOfItems);
         fillServers(maxNumberOfItems);
     }
 
     @Override
     public int getSize() {
-        return servers.length;
+        return servers.size();
     }
 
     @Override
@@ -34,21 +35,21 @@ public class Cluster implements FallibleWithInners {
 
     @Override
     public FallibleWithInners getInnerFallible(int id) {
-        return servers[id];
+        return servers.get(id);
     }
 
     public void sendData() {
         failed = true;
-        int failedServer = RANDOM.nextInt(servers.length);
-        servers[failedServer].failRandomNode();
-        for (int i = failedServer + 1; i < servers.length; i++) {
-            servers[i].failAll();
+        int failedServer = RANDOM.nextInt(servers.size());
+        servers.get(failedServer).failRandomNode();
+        for (int i = failedServer + 1; i < servers.size(); i++) {
+            servers.get(i).failAll();
         }
     }
 
     @Override
     public String toString() {
-        return "Cluster{" + Arrays.stream(servers)
+        return "Cluster{" + servers.stream()
                                   .map(Objects::toString)
                                   .map(string -> string + "\n")
                                   .map(string -> string.replaceAll("\\[", "\n"))
@@ -60,14 +61,10 @@ public class Cluster implements FallibleWithInners {
                 '}';
     }
 
-    private Server[] createServers(int maxNumberOfItems) {
-        int numberOfServers = RANDOM.nextInt(maxNumberOfItems - 1) + 1;
-        return new Server[numberOfServers];
-    }
-
     private void fillServers(int maxNumberOfItems) {
-        for (int i = 0; i < servers.length; i++) {
-            servers[i] = new Server(i, maxNumberOfItems);
+        int numberOfServers = RANDOM.nextInt(maxNumberOfItems - 1) + 1;
+        for (int i = 0; i < numberOfServers; i++) {
+            servers.add(new Server(i, maxNumberOfItems));
         }
     }
 
