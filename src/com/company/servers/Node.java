@@ -1,17 +1,24 @@
 package com.company.servers;
 
-public class Node implements FallibleWithInners {
+import java.text.MessageFormat;
+import java.util.Random;
+
+import com.company.exceptions.FailedTransactionException;
+
+public class Node implements FallibleWithInners, Transactionable {
+
+    private static final Random RANDOM = new Random();
 
     private final int id;
-    private boolean failed;
+    private boolean transactionPassed;
 
     Node(int id) {
         this.id = id;
     }
 
     @Override
-    public boolean isFailed() {
-        return failed;
+    public boolean isTransactionPassed() {
+        return transactionPassed;
     }
 
     @Override
@@ -29,15 +36,21 @@ public class Node implements FallibleWithInners {
         return id;
     }
 
-    void failNode() {
-        this.failed = true;
-    }
-
     @Override
     public String toString() {
         return "Node{" +
                 "id=" + id +
-                ", failed=" + failed +
+                ", transactionPassed=" + transactionPassed +
                 '}';
     }
+
+    @Override
+    public void doTransaction() {
+        int number = RANDOM.nextInt(30); // generating some chance to fail transaction 1/30
+        if (number == 0) {
+            throw new FailedTransactionException(MessageFormat.format("Node №{0} has transactionPassed", id));
+        }
+        transactionPassed = true;
+    }
+
 }

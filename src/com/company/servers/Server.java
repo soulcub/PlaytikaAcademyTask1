@@ -1,24 +1,26 @@
 package com.company.servers;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class Server implements FallibleWithInners {
+import com.company.exceptions.FailedTransactionException;
+
+public class Server implements FallibleWithInners, Transactionable {
 
     private static final Random RANDOM = new Random();
 
     private final int id;
-    private final List<Node> nodes;
+    private final List<Node> nodes = new ArrayList<>();
 
-    private boolean failed;
+    private boolean transactionPassed;
 
     Server(int id, int maxNumberOfItems) {
         this.id = id;
         int numberOfNodes = RANDOM.nextInt(maxNumberOfItems - 1) + 1;
-        nodes = new ArrayList<>(numberOfNodes);
         for (int i = 0; i < numberOfNodes; i++) {
             nodes.add(new Node(i));
         }
@@ -46,8 +48,8 @@ public class Server implements FallibleWithInners {
     }
 
     @Override
-    public boolean isFailed() {
-        return failed;
+    public boolean isTransactionPassed() {
+        return transactionPassed;
     }
 
     @Override
@@ -55,18 +57,15 @@ public class Server implements FallibleWithInners {
         return nodes.get(number);
     }
 
-    void failRandomNode() {
-        failed = true;
-        int failedNode = RANDOM.nextInt(nodes.size());
-        for (int i = failedNode; i < nodes.size(); i++) {
-            nodes.get(i).failNode();
+    @Override
+    public void doTransaction() {
+        try {
+            for (Node node : nodes) {
+                node.doTransaction();
+            }
+        } catch (FailedTransactionException e) {
+            throw new FailedTransactionException(MessageFormat.format("Server №{0} has transactionPassed", id), e);
         }
-    }
-
-    void failAll() {
-        failed = true;
-        for (Node node : nodes) {
-            node.failNode();
-        }
+        transactionPassed = true;
     }
 }
